@@ -8,7 +8,10 @@
         },
         inputs:1,
         outputs:1,
-        icon: "hashtag.png",
+        icon: "wasp-frame.svg",
+		labelStyle: function() {
+			return this.name?"node_label_italic":"";
+		},
         label: function() {
             return this.name||"wasp-frame";
         }
