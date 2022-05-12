@@ -1,0 +1,49 @@
+
+<script type="text/javascript">
+    RED.nodes.registerType('wasp-frame',{
+        category: 'parser',
+        color: '#DEBD5C',
+        defaults: {
+            name: {value:""}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "hashtag.png",
+        label: function() {
+            return this.name||"wasp-frame";
+        }
+    });
+</script>
+
+
+<script type="text/x-red" data-template-name="wasp-frame">
+	<div class="form-row">
+	  <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+	  <input type="text" id="node-input-name" placeholder="Name">
+	</div>
+	<div class="form-row" style="margin-bottom: 0px;">
+		<label for="node-input-func"><i class="fa fa-wrench"></i> <span>Settings</span></label>
+		<input type="hidden" id="node-input-func" autofocus="autofocus">
+		<input type="hidden" id="node-input-noerr">
+	</div>
+	<div class="form-tips"><span>See the Info tab for additional information</span></div>
+
+</script>
+
+
+<script type="text/x-red" data-help-name="wasp-frame">
+    <p>Parse frame from Waspmote Frame format into JSON. ASCII and BINARY formats are supported.</p>
+	
+    <p>Description will be here..</p>
+    <p>..more description..</p>
+    <p><pre>THIS IS NOT READY FOR PRODUCTION YET!</pre></p>
+
+    <h2>Usage</h2>
+    <p>Usage description..</p>
+    <p>..something about <code>msg</code>.</p>
+    <p>.. and about <code>msg['payload']</code> should be written</p>
+    <h4>More info</h4>
+    <p>more info with code examples <code>node.send(messages)</code>.</p>
+    <p>See the <a target="_new" href="http://nodered.org/docs/wasp-frame.html">online documentation</a> for more help.</p>
+
+</script>
