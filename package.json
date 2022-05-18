@@ -1,17 +1,19 @@
 {
   "name": "@rozanovskii/node-red-contrib-wasp-frame",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A Node-RED node which convert Waspmote Frame data to JSON",
   "repository": {
     "type": "git",
     "url": "git://github.com/Iliaroz/node-red-contrib-wasp-frame.git"
   },
   "keywords": [
+	"node-red",
     "Wasp",
     "libelium",
     "waspmote",
     "WaspFrame",
-    "Frame"
+    "Frame",
+	"Plug&Sense"
   ],
   "author": "Ilia Rozanovskii",
   "license": "MIT",
