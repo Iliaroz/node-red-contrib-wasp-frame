@@ -154,7 +154,6 @@ module.exports = function(RED) {
 			} else if ( data.hasOwnProperty( "DATE" ) && data.hasOwnProperty( "TIME" ) ){
 				let Dparts = data["DATE"].split(/[-]/);
 				let Tparts = data["TIME"].split(/[+-]/);
-				console.log('============= DATETIME: ', Dparts, Tparts);
 				var timestamp = new Date(Number(Dparts[0]) + 2000, Number(Dparts[1]) - 1, Dparts[2], Tparts[0], Tparts[1], Tparts[2]);
 				if (isNaN(timestamp.getTime()) == false) {
 					data.timestamp = new Date(timestamp);
