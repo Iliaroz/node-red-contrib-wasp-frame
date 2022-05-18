@@ -1,6 +1,6 @@
 {
   "name": "@rozanovskii/node-red-contrib-wasp-frame",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Node-RED node which convert Waspmote Frame data to JSON",
   "repository": {
     "type": "git",
@@ -8,23 +8,24 @@
   },
   "keywords": [
     "Wasp",
-	"libelium",
-	"waspmote",
-	"WaspFrame",
+    "libelium",
+    "waspmote",
+    "WaspFrame",
     "Frame"
   ],
   "author": "Ilia Rozanovskii",
   "license": "MIT",
-  "node-red" : {
+  "node-red": {
     "version": ">=2.0.0",
-  	"nodes": {
-  		"wasp-frame": "wasp-frame.js"
-  	}
+    "nodes": {
+      "wasp-frame": "wasp-frame.js"
+    }
   },
   "bugs": {
     "url": "https://github.com/Iliaroz/node-red-contrib-wasp-frame.git/issues"
   },
   "homepage": "https://github.com/Iliaroz/node-red-contrib-wasp-frame.git/readme",
   "dependencies": {
+    "@rozanovskii/node-red-contrib-wasp-frame": "^0.0.1"
   }
 }

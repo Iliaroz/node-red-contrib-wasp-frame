@@ -12,7 +12,7 @@ THIS IS NOT READY FOR PRODUCTION YET!
 
 ## Input
 
-payload object | string
+`payload` object | string
 
 WaspFrame buffer (preferred) or string to parse
 
@@ -23,9 +23,11 @@ Input string example
 
 ## Output
 
-payload object | string
+`payload` object
 
-the results.
+The parsing result is JSON object. Doublicate properties have sequence number at the end ( ex. `WF`, `WF_1`, `WF_2` ).
+
+Frame field `frame.addTimestamp()` (`TST`) transforms into `timestamp` property.
 
 #### NOTES:  
 Output examle  
@@ -34,11 +36,11 @@ Output examle
 {
 	"frametype":"Information",
 	"SerialID":"1A2B3C4D1A2B3C4D",
-	"WaspmoteID":"NB\_IOT\_TCP",
+	"WaspmoteID":"NB_IOT_TCP",
 	"Sequence":0,
-	"EV\_A":0,
-	"EV\_C":0,
-	"EV\_D":0,
+	"EV_A":0,
+	"EV_C":0,
+	"EV_D":0,
 	"WF":0,
 	"BAT":65,
 	timestamp: "2021-01-29T21:39:03.000Z"
