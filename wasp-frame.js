@@ -100,6 +100,7 @@ module.exports = function(RED) {
     function WaspFrameNode(config) {
         RED.nodes.createNode(this,config);
         var node = this;
+        node.fullNameOutput = config.fullNameOutput == false;
 
 
 
@@ -135,7 +136,23 @@ module.exports = function(RED) {
 					ParseBinaryFramePayload();
 				}
 			}
-			parsed = true;
+			if ( data.hasOwnProperty( "TST" ) ) {
+				if ( isNaN(data["TST"]) == false ) {
+					data.timestamp = new Date(1000 * data["TST"]);	// seconds epoch to millisecond
+					delete data["TST"];
+				}
+			} else if ( data.hasOwnProperty( "DATE" ) && data.hasOwnProperty( "TIME" ) ){
+				let Dparts = data["DATE"].split(/[-]/);
+				let Tparts = data["TIME"].split(/[+-]/);
+				console.log('============= DATETIME: ', Dparts, Tparts);
+				var timestamp = new Date(Number(Dparts[0]) + 2000, Number(Dparts[1]) - 1, Dparts[2], Tparts[0], Tparts[1], Tparts[2]);
+				if (isNaN(timestamp.getTime()) == false) {
+					data.timestamp = new Date(timestamp);
+					delete data["DATE"];
+					delete data["TIME"];
+				}
+			}
+			parsed = true;	// fake it, any stuff passes to output
 			if ( parsed ) { return data; };
 			
 			/// ****** END of ParseIncomeBuffer code.
@@ -161,7 +178,7 @@ module.exports = function(RED) {
 				const chunkName = chunk.split(":")[0];
 				const chunkVal =  chunk.split(":")[1];
 				const fname = getUnusedFieldName( data, chunkName );
-				const subvals =  chunkVal.split(";");
+				var subvals =  chunkVal.split(";");
 				switch (chunkName){
 					/// HUGE switch for multi-fields chunks
 					/// All other with one field go to default
@@ -170,12 +187,16 @@ module.exports = function(RED) {
 						data[ getUnusedFieldName( data, chunkName + '_LON' ) ] = getValue(chunkName, subvals[1]);
 						break;
 					case "DATE" :    // 3 uint8_t fields: year, month, day
-						var dd = new Date(subvals[0], subvals[1], subvals[2]);
-						data[ fname ] = dd;
+						subvals = chunkVal.split("-");
+						//var dd = new Date(subvals[0], subvals[1], subvals[2]);
+						//data[ fname ] = dd;
+						data[ fname ] = chunkVal;
 						break;
 					case "TIME" :    // 3 uint8_t fields: hours, minutes, seconds
-						var dt = new Date(0, 0, 0, subvals[0], subvals[1], subvals[2]);
-						data[ fname ] = dt;
+						subvals = chunkVal.split("-");
+						//var dt = new Date(0, 0, 0, subvals[0], subvals[1], subvals[2].slice(0, 2));
+						//data[ fname ] = dt;
+						data[ fname ] = chunkVal;
 						break;
 					case "ACC" :    // 3 int fields: latitude, longitude
 						data[ getUnusedFieldName( data, chunkName + '_X' ) ] = getValue(chunkName, subvals[0]);
@@ -200,7 +221,7 @@ module.exports = function(RED) {
 
 
 			function ParseBinaryFramePayload() {
-				console.log('Payload type is BINARY');
+				// console.log('Payload type is BINARY');
 				
 			}
 
@@ -337,8 +358,8 @@ module.exports = function(RED) {
 
         node.on('input', function(msg) {
 			let msgBuffer = msg.payload;
-			console.log(' * node.on("input" :', msgBuffer);
-			msg = {};
+			// console.log(' * node.on("input" :', msgBuffer);
+			msg.payload = {};
 			
 			try{
 				let data = ParseIncomeBuffer(msgBuffer);

@@ -4,7 +4,8 @@
         category: 'parser',
         color: '#DEBD5C',
         defaults: {
-            name: {value:""}
+            name: {value:""},
+            fullNameOutput: { value: false },
         },
         inputs:1,
         outputs:1,
@@ -14,7 +15,10 @@
 		},
         label: function() {
             return this.name||"wasp-frame";
-        }
+        },
+        oneditprepare: function () {
+			$("#node-input-fullNameOutput").prop("disabled", true);
+		}
     });
 </script>
 
@@ -29,24 +33,59 @@
 		<input type="hidden" id="node-input-func" autofocus="autofocus">
 		<input type="hidden" id="node-input-noerr">
 	</div>
+	<div class="form-row buffer-parser-form-row ui-row" id="ui-row3">
+		<label><i class="fa fa-sign-out"></i> <span data-i18n="buffer-parser.label.returnOptions"> Output options</span></label>
+		<span>
+			<label for="node-input-fullNameOutput" style="width:50%">
+				<input type="checkbox" id="node-input-fullNameOutput" style="display:inline-block; width:22px; vertical-align:baseline;" title="Write full names in output object (ex. SENSOR_BAT instead of BAT)" autocomplete="off"><span data-i18n="buffer-parser.label.fullNameOutput">Full names in output</span>
+			</label>
+			<input type="hidden" id="node-input-outputs"/>
+		</span>
+	</div>
 	<div class="form-tips"><span>See the Info tab for additional information</span></div>
 
 </script>
 
 
 <script type="text/x-red" data-help-name="wasp-frame">
-    <p>Parse frame from Waspmote Frame format into JSON. ASCII format is supported. (not BINARY)</p>
+    <p>Parse frame from Waspmote Frame format into JSON object. ASCII format is supported. (not BINARY)</p>
 	
-    <p>Description will be here..</p>
-    <p>..more description..</p>
+    <p>This wasp-frame node parse input <code>msg['payload']</code> buffer from WaspFrame format into JSON format. Currently version Waspmote v15 is supported. </p>
+    <p>WaspFrame is formatted frames created with a library included within Waspmote API. See <a target="_new" href="https://development.libelium.com/data-frame-programming-guide/">online documentation</a> for more information.</p>
+	
     <p><pre>THIS IS NOT READY FOR PRODUCTION YET!</pre></p>
 
-    <h2>Usage</h2>
-    <p>Usage description..</p>
-    <p>..something about <code>msg</code>.</p>
-    <p>.. and about <code>msg['payload']</code> should be written</p>
-    <h4>More info</h4>
-    <p>more info with code examples <code>node.send(messages)</code>.</p>
+	<h3>Input</h3>
+	<dl class="message-properties">
+		<dt>payload <span class="property-type">object | string</span></dt>
+		<dd>WaspFrame buffer (preferred) or string to parse</dd>
+		<h4>NOTES:<br>
+			Input string example<br>
+			<pre><=>#1A2B3C4D1A2B3C4D#NB_IOT_TCP#0#EV_A:0#EV_C:0#EV_D:0#WF:0.000#BAT:65#TIME:23-39-3#DATE:21-1-29#</pre>
+		</h4>
+	</dl>
+
+	<h3>Output</h3>
+	<dl class="message-properties">
+		<dt>payload <span class="property-type">object | string</span></dt>
+		<dd>the results.</dd>
+		<h4>NOTES:<br>
+			Output examle<br>
+<pre>{
+	"frametype":"Information",
+	"SerialID":"1A2B3C4D1A2B3C4D",
+	"WaspmoteID":"NB_IOT_TCP",
+	"Sequence":0,
+	"EV_A":0,
+	"EV_C":0,
+	"EV_D":0,
+	"WF":0,
+	"BAT":65,
+	timestamp: "2021-01-29T21:39:03.000Z"
+}</pre>
+		</h4>
+	</dl>
+
     <p>See the <a target="_new" href="http://nodered.org/docs/wasp-frame.html">online documentation</a> for more help.</p>
 
 </script>
