@@ -1,6 +1,6 @@
 {
   "name": "@rozanovskii/node-red-contrib-wasp-frame",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A Node-RED node which convert Waspmote Frame data to JSON",
   "repository": {
     "type": "git",
@@ -17,6 +17,9 @@
   ],
   "author": "Ilia Rozanovskii",
   "license": "MIT",
+  "engines": {
+	"node": ">=12.0.0"
+  },
   "node-red": {
     "version": ">=2.0.0",
     "nodes": {

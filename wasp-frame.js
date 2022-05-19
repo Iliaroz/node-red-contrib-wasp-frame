@@ -146,7 +146,8 @@ module.exports = function(RED) {
 					ParseBinaryFramePayload();
 				}
 			}
-			if ( data.hasOwnProperty( "TST" ) ) {
+			/*
+ 			if ( data.hasOwnProperty( "TST" ) ) {
 				if ( isNaN(data["TST"]) == false ) {
 					data.timestamp = new Date(1000 * data["TST"]);	// seconds epoch to millisecond
 					delete data["TST"];
@@ -161,7 +162,8 @@ module.exports = function(RED) {
 					delete data["TIME"];
 				}
 			}
-			parsed = true;	// fake it, any stuff passes to output
+			*/
+ 			parsed = true;	// fake it, any stuff passes to output
 			if ( parsed ) { return data; };
 			
 			/// ****** END of ParseIncomeBuffer code.
