@@ -111,6 +111,8 @@ module.exports = function(RED) {
         RED.nodes.createNode(this,config);
         var node = this;
         node.fullNameOutput = config.fullNameOutput == false;
+        node.resultType = config.resultType || 'keyvalue';
+        node.resultTypeType = config.resultTypeType || 'str';
 
 
 

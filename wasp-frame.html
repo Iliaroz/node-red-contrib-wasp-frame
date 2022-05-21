@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         defaults: {
             name: {value:""},
             fullNameOutput: { value: false },
+            resultType: { value: "keyvalue" },
         },
         inputs:1,
         outputs:1,
@@ -24,11 +25,69 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         label: function() {
             return this.name||"wasp-frame";
         },
+		
+		/*
+			oneditprepare == runs before Node settings dialog opening
+		*/
         oneditprepare: function () {
 			$("#node-input-fullNameOutput").prop("disabled", true);
+            var returnOpt = {
+                value: "output",
+                label: "output",
+                title: "output",
+                icon: "fa fa-sign-out",
+                options: [
+                    { label: "Flat JSON (key/value)", value: 'keyvalue', title: 'Send an object with results in key/value pairs. All founded values transforms into pairs and puts in `msg.payload` property.' },
+                    { label: "InfluxDB 1.8 ready", value: 'influx18', title: 'Send an object with results in key/object pairs in format ready for InfluxDB v1.8+ node. Sender specific information writes into tag array, all other values in fields array.' },
+                    { label: "InfluxDB 2.0 ready", value: 'influx20', title: 'Send an object with results in key/object pairs in format ready for InfluxDB v2.0 node. Sender specific information writes into tag array, all other values in fields array. Additionally `bucket` and `organization` properties placed if provided.' },
+                 //   { label: "array (of objects)", value: 'array', title: 'Send an array of objects in the msg property specified by "Output property"' },
+                 //   { label: "buffer", value: 'buffer', title: 'Send a buffer in the msg property specified by "Output property"' },
+                ],
+                default: "keyvalue"
+            }
+            var resultTypeField = $("#node-input-resultType").typedInput({
+                default: "output",
+                type: "output",
+                types: [returnOpt],
+                // typeField: "#node-input-resultTypeType"
+            });
+            resultTypeField.on("change", function () {
+                var v = resultTypeField.typedInput("value");
+				switch (v.toLowerCase()) {
+					case "keyvalue" :
+						$("#ui-out-options").show();
+						$("#ui-db-options").hide();
+						$("#ui-db20-options").hide();
+						break;
+					case "influx20" :
+						$("#ui-out-options").hide();
+						$("#ui-db-options").show();
+						$("#ui-db20-options").show();
+						break;
+					case "influx18" :
+						$("#ui-out-options").hide();
+						$("#ui-db20-options").hide();
+						$("#ui-db-options").show();
+						break;
+					default:
+						$("#ui-db-options").hide();
+						$("#ui-db20-options").hide();
+						$("#ui-out-options").hide();
+				}
+            });
+		},
+		
+		/*
+			oneditsave  ==  runs when "Done" button in Node properties window is pressed
+		*/
+        oneditsave: function () {
+            node.resultType = $("#node-input-resultType").typedInput("type");
 		}
     });
 </script>
+
+
+
 
 
 <script type="text/x-red" data-template-name="wasp-frame">
@@ -41,18 +100,70 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		<input type="hidden" id="node-input-func" autofocus="autofocus">
 		<input type="hidden" id="node-input-noerr">
 	</div>
-	<div class="form-row buffer-parser-form-row ui-row" id="ui-row3">
-		<label><i class="fa fa-sign-out"></i> <span data-i18n="buffer-parser.label.returnOptions"> Output options</span></label>
-		<span>
-			<label for="node-input-fullNameOutput" style="width:50%">
-				<input type="checkbox" id="node-input-fullNameOutput" style="display:inline-block; width:22px; vertical-align:baseline;" title="Write full names in output object (ex. SENSOR_BAT instead of BAT)" autocomplete="off"><span data-i18n="buffer-parser.label.fullNameOutput">Full names in output</span>
+    <div class="form-row wasp-frame-form-row ui-row" id="ui-row1">
+        <label for="node-input-resultType" style="width:160px">
+			<i class="fa fa-sign-out"></i>
+			<span data-i18n="wasp-frame.label.resultType"> Output format</span>
+		</label>
+        <input type="hidden" id="node-input-resultTypeType">
+        <input style="width:calc(100% - 180px)" type="text" id="node-input-resultType" placeholder="value">
+    </div>
+	<div class="form-row wasp-frame-form-row ui-row" id="ui-out-options">
+		<div>
+			<label style="width:70%"><i class="fa fa-sign-out"></i> <span data-i18n="wasp-frame.label.returnOptions"> Output options</span></label>
+		</div>
+		<div>
+			<span>
+				<label for="node-input-fullNameOutput" style="width:50%;margin-left: 30px;">
+					<input type="checkbox" id="node-input-fullNameOutput" style="display:inline-block; width:22px; vertical-align:baseline;" title="Write full names in output object (ex. SENSOR_BAT instead of BAT)" autocomplete="off"><span data-i18n="wasp-frame.label.fullNameOutput">Full names in output</span>
+				</label>
+				<input type="hidden" id="node-input-outputs"/>
+			</span>
+		</div>
+	</div>
+	<div class="form-row wasp-frame-form-row ui-row" id="ui-db-options">
+		<div>
+			<label style="width:70%"><i class="fa fa-database"></i> <span data-i18n="wasp-frame.label.dbOptions"> Database options</span></label>
+		</div>
+		<div>
+			<span>
+				<label for="node-input-measurementField" style="width:140px;margin-left: 30px;">
+					<span data-i18n="wasp-frame.label.setMeasurementTo"> Measurement </span>
+				</label>
+				<input style="width:calc(100% - 180px)" type="text" id="node-input-measurementField" placeholder="value">
+			</span>
+		</div>
+	</div>
+	<div class="form-row wasp-frame-form-row ui-row" id="ui-db20-options">
+		<div>
+			<label for="node-input-Bucket" style="width:140px;margin-left: 30px;">
+				<span data-i18n="wasp-frame.label.Bucket"> Bucket </span>
 			</label>
-			<input type="hidden" id="node-input-outputs"/>
-		</span>
+			<input style="width:calc(100% - 180px)" type="text" id="node-input-bucketField" placeholder="value">
+		</div>
+		<div>
+			<label for="node-input-OrgField" style="width:140px;margin-left: 30px;">
+				<span data-i18n="wasp-frame.label.Organization"> Organization </span>
+			</label>
+			<input style="width:calc(100% - 180px)" type="text" id="node-input-OrgField" placeholder="value">
+		</div>
 	</div>
 	<div class="form-tips"><span>See the Info tab for additional information</span></div>
 
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <script type="text/x-red" data-help-name="wasp-frame">
