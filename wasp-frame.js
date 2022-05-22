@@ -113,11 +113,21 @@ module.exports = function(RED) {
         node.fullNameOutput = config.fullNameOutput == false;
         node.resultType = config.resultType || 'keyvalue';
         node.resultTypeType = config.resultTypeType || 'str';
+        node.Measurement = config.Measurement || '';
+        node.MeasurementType = config.MeasurementType || 'str';
+        node.Bucket = config.Bucket || '';
+        node.BucketType = config.BucketType || 'str';
+        node.Organization = config.Organization || '';
+        node.OrganizationType = config.OrganizationType || 'str';
+		
 
 
 
 		function ParseIncomeBuffer(msgBuffer) {
+			var message = {};
+			var tags = {};
 			var data = {};
+			var timestamp = Date.now();
 			var parsed = false;
 			node.status({});
 			if ( !correctFrameHeader(msgBuffer) ) {
@@ -125,9 +135,7 @@ module.exports = function(RED) {
 				return;
 			}
 			if (typeof(msgBuffer) === "string") {
-				/*
-				 *  PARSE as ASCII
-				*/
+				/* PARSE as ASCII */
 				if ( correctFrameHeader(msgBuffer) ) {
 					ParseStringFramePayload(msgBuffer.slice(3));
 				} else {
@@ -135,41 +143,69 @@ module.exports = function(RED) {
 				}
 				
 			} else if ( Buffer.isBuffer(msgBuffer) ) {
-				/*
-				 *  PARSE as BINARY
-				*/
+				/* PARSE as BINARY */
 				if ( msgBuffer[3] >= 128 ) {    // string buffer
-					data.frametype = getFrameType( msgBuffer[3] );
+					putTag( "frametype" , getFrameType(msgBuffer[3]) );
 					/// fieldsNum = msgBuffer[4];
 					let strToParse = String(msgBuffer.slice(5));
 					ParseStringFramePayload(strToParse);
 				} else {    // really BINARY Frame
-				// TODO: binary parsing
 					ParseBinaryFramePayload();
 				}
 			}
-			/*
- 			if ( data.hasOwnProperty( "TST" ) ) {
-				if ( isNaN(data["TST"]) == false ) {
-					data.timestamp = new Date(1000 * data["TST"]);	// seconds epoch to millisecond
-					delete data["TST"];
-				}
-			} else if ( data.hasOwnProperty( "DATE" ) && data.hasOwnProperty( "TIME" ) ){
-				let Dparts = data["DATE"].split(/[-]/);
-				let Tparts = data["TIME"].split(/[+-]/);
-				var timestamp = new Date(Number(Dparts[0]) + 2000, Number(Dparts[1]) - 1, Dparts[2], Tparts[0], Tparts[1], Tparts[2]);
-				if (isNaN(timestamp.getTime()) == false) {
-					data.timestamp = new Date(timestamp);
-					delete data["DATE"];
-					delete data["TIME"];
-				}
+			/* Form out message */
+			message.payload = {};
+			switch (node.resultType) {
+				case "influx18":
+					parseDateTime();
+					if (node.Measurement) {
+						message.measurement = String(node.Measurement);
+					}
+					message.payload = [{...data}, {...tags},];
+					message.timestamp = timestamp;
+					break;
+				case "influx20":
+					parseDateTime();
+					if (node.Measurement) {
+						message.payload.data[0].measurement = String(node.Measurement);
+					}
+					if (node.Bucket) {
+						message.payload.bucket = String(node.Bucket);
+					}
+					if (node.Organization) {
+						message.payload.org = String(node.Organization);
+					}
+					message.payload.data = [{},];
+					message.payload.data[0].tags = {...tags};
+					message.payload.data[0].fields = {...data};
+					message.payload.data[0].timestamp = timestamp;
+					break;
+				default:	// keyvalue
+					message.payload = {...tags, ...data};
 			}
-			*/
+
  			parsed = true;	// fake it, any stuff passes to output
-			if ( parsed ) { return data; };
+			if ( parsed ) { return message; };
 			
 			/// ****** END of ParseIncomeBuffer code.
 
+			function parseDateTime() {
+				if ( data.hasOwnProperty( "TST" ) ) {
+					if ( isNaN(data["TST"]) == false ) {
+						timestamp = new Date(1000 * data["TST"]);	// seconds epoch to millisecond
+						delete data["TST"];
+					}
+				} else if ( data.hasOwnProperty( "DATE" ) && data.hasOwnProperty( "TIME" ) ){
+					let Dparts = data["DATE"].split(/[-]/);
+					let Tparts = data["TIME"].split(/[+-]/);
+					var tstamp = new Date(Number(Dparts[0]) + 2000, Number(Dparts[1]) - 1, Dparts[2], Tparts[0], Tparts[1], Tparts[2]);
+					if (isNaN(tstamp.getTime()) == false) {
+						timestamp = new Date(tstamp);
+						delete data["DATE"];
+						delete data["TIME"];
+					}
+				}
+			}
 
 			function correctFrameHeader(buf) {
 				return String(buf).startsWith("<=>");
@@ -177,13 +213,29 @@ module.exports = function(RED) {
 
 			function ParseStringFramePayload(strToParse) {
 				const BufSlices = strToParse.split("#");
-				data["SerialID"] = String(BufSlices[1]);
-				data["WaspmoteID"] = String(BufSlices[2]);
-				data["Sequence"] = getIntVal(BufSlices[3]);
+				putTag( "SerialID", String(BufSlices[1]) );
+				putTag( "WaspmoteID", String(BufSlices[2]) );
+				putTag( "Sequence", getIntVal(BufSlices[3]) );
 				for (let i=4; i < BufSlices.length - 1; i++) {
-					let ndata = ParseStringChunk(BufSlices[i]);
-					data = {...data, ...ndata};
+					ParseStringChunk(BufSlices[i]);
 				}
+			}
+			
+			function putTag(Tname, Tval) {
+				switch (node.resultType) {
+					case "influx18":
+						tags[Tname] = Tval;
+						break;
+					case "influx20":
+						tags[Tname] = Tval;
+						break;
+					default:
+						data[Tname] = Tval;
+				}
+			}
+
+			function putData(Dname, Dval) {
+				data[Dname] = Dval;
 			}
 
 
@@ -196,39 +248,39 @@ module.exports = function(RED) {
 					/// HUGE switch for multi-fields chunks
 					/// All other with one field go to default
 					case "GPS" :    // 2 float fields: latitude, longitude
-						data[ getUnusedFieldName( data, chunkName + '_LAT' ) ] = getValue(chunkName, subvals[0]);
-						data[ getUnusedFieldName( data, chunkName + '_LON' ) ] = getValue(chunkName, subvals[1]);
+						putData( getUnusedFieldName( data, chunkName + '_LAT' ) , getValue(chunkName, subvals[0]) );
+						putData( getUnusedFieldName( data, chunkName + '_LON' ) ,  getValue(chunkName, subvals[1]) );
 						break;
 					case "DATE" :    // 3 uint8_t fields: year, month, day
 						subvals = chunkVal.split("-");
 						//var dd = new Date(subvals[0], subvals[1], subvals[2]);
 						//data[ fname ] = dd;
-						data[ fname ] = chunkVal;
+						putData(  fname , chunkVal );
 						break;
 					case "TIME" :    // 3 uint8_t fields: hours, minutes, seconds
 						subvals = chunkVal.split("-");
 						//var dt = new Date(0, 0, 0, subvals[0], subvals[1], subvals[2].slice(0, 2));
 						//data[ fname ] = dt;
-						data[ fname ] = chunkVal;
+						putData(  fname , chunkVal );
 						break;
 					case "ACC" :    // 3 int fields: latitude, longitude
-						data[ getUnusedFieldName( data, chunkName + '_X' ) ] = getValue(chunkName, subvals[0]);
-						data[ getUnusedFieldName( data, chunkName + '_Y' ) ] = getValue(chunkName, subvals[1]);
-						data[ getUnusedFieldName( data, chunkName + '_Z' ) ] = getValue(chunkName, subvals[2]);
+						putData( getUnusedFieldName( data, chunkName + '_X' ) , getValue(chunkName, subvals[0]) );
+						putData( getUnusedFieldName( data, chunkName + '_Y' ) , getValue(chunkName, subvals[1]) );
+						putData( getUnusedFieldName( data, chunkName + '_Z' ) , getValue(chunkName, subvals[2]) );
 						break;
 					case "MB_COILS" :    // 2 int fields: 
 					case "MB_DI" :    // 2 int fields: 
-						data[ getUnusedFieldName( data, chunkName + '_A' ) ] = getValue(chunkName, subvals[0]);
-						data[ getUnusedFieldName( data, chunkName + '_B' ) ] = getValue(chunkName, subvals[1]);
+						putData( getUnusedFieldName( data, chunkName + '_A' ) , getValue(chunkName, subvals[0]) );
+						putData( getUnusedFieldName( data, chunkName + '_B' ) , getValue(chunkName, subvals[1]) );
 						break;
 					case "MB_HR" :    // 3 int fields: 
 					case "MB_IR" :    // 3 int fields: 
-						data[ getUnusedFieldName( data, chunkName + '_A' ) ] = getValue(chunkName, subvals[0]);
-						data[ getUnusedFieldName( data, chunkName + '_B' ) ] = getValue(chunkName, subvals[1]);
-						data[ getUnusedFieldName( data, chunkName + '_C' ) ] = getValue(chunkName, subvals[2]);
+						putData( getUnusedFieldName( data, chunkName + '_A' ) , getValue(chunkName, subvals[0]) );
+						putData( getUnusedFieldName( data, chunkName + '_B' ) , getValue(chunkName, subvals[1]) );
+						putData( getUnusedFieldName( data, chunkName + '_C' ) , getValue(chunkName, subvals[2]) );
 						break;
 					default:
-						data[ fname ] = getValue(chunkName, chunkVal);
+						putData( fname , getValue(chunkName, chunkVal) );
 				}
 			}
 
@@ -372,13 +424,12 @@ module.exports = function(RED) {
         node.on('input', function(msg) {
 			let msgBuffer = msg.payload;
 			// console.log(' * node.on("input" :', msgBuffer);
-			msg.payload = {};
+			msg = {};
 			
 			try{
-				let data = ParseIncomeBuffer(msgBuffer);
-				if (data) {
-					msg.payload = data;
-					node.send( msg ) ;
+				let newmsg = ParseIncomeBuffer(msgBuffer);
+				if (newmsg) {
+					node.send( newmsg ) ;
 				}
 			}catch (error) {
                 node.error(error, msg);

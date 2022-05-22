@@ -15,6 +15,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             name: {value:""},
             fullNameOutput: { value: false },
             resultType: { value: "keyvalue" },
+            Measurement: { value: "" },
+            MeasurementType: { value: "str" },
+            Bucket: { value: "" },
+            BucketType: { value: "str" },
+            Organization: { value: "" },
+            OrganizationType: { value: "str" },
         },
         inputs:1,
         outputs:1,
@@ -75,6 +81,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 						$("#ui-out-options").hide();
 				}
             });
+			var MeasurementField = $("#node-input-Measurement").typedInput({ types: ["str" ] });
+			var BucketField = $("#node-input-Bucket").typedInput({ types: ["str" ] });
+			var OrganizationField = $("#node-input-Organization").typedInput({ types: ["str" ] });
 		},
 		
 		/*
@@ -82,6 +91,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		*/
         oneditsave: function () {
             node.resultType = $("#node-input-resultType").typedInput("type");
+			/*
+			node.Measurement = $("#node-input-Measurement").typedInput("value");
+			node.Bucket = $("#node-input-Bucket").typedInput("value");
+			node.Organization = $("#node-input-Organization").typedInput("value");
+			*/
 		}
     });
 </script>
@@ -127,10 +141,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		</div>
 		<div>
 			<span>
-				<label for="node-input-measurementField" style="width:140px;margin-left: 30px;">
-					<span data-i18n="wasp-frame.label.setMeasurementTo"> Measurement </span>
+				<label for="node-input-Measurement" style="width:140px;margin-left: 30px;">
+					<span data-i18n="wasp-frame.label.Measurement"> Measurement </span>
 				</label>
-				<input style="width:calc(100% - 180px)" type="text" id="node-input-measurementField" placeholder="value">
+				<input type="hidden" id="node-input-MeasurementType">
+				<input style="width:calc(100% - 180px)" type="text" id="node-input-Measurement" placeholder="value">
 			</span>
 		</div>
 	</div>
@@ -139,13 +154,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			<label for="node-input-Bucket" style="width:140px;margin-left: 30px;">
 				<span data-i18n="wasp-frame.label.Bucket"> Bucket </span>
 			</label>
-			<input style="width:calc(100% - 180px)" type="text" id="node-input-bucketField" placeholder="value">
+			<input type="hidden" id="node-input-BucketType">
+			<input style="width:calc(100% - 180px)" type="text" id="node-input-Bucket" placeholder="value">
 		</div>
 		<div>
-			<label for="node-input-OrgField" style="width:140px;margin-left: 30px;">
+			<label for="node-input-Organization" style="width:140px;margin-left: 30px;">
 				<span data-i18n="wasp-frame.label.Organization"> Organization </span>
 			</label>
-			<input style="width:calc(100% - 180px)" type="text" id="node-input-OrgField" placeholder="value">
+			<input type="hidden" id="node-input-OrganizationType">
+			<input style="width:calc(100% - 180px)" type="text" id="node-input-Organization" placeholder="value">
 		</div>
 	</div>
 	<div class="form-tips"><span>See the Info tab for additional information</span></div>
