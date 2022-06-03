@@ -166,9 +166,6 @@ module.exports = function(RED) {
 					break;
 				case "influx20":
 					parseDateTime();
-					if (node.Measurement) {
-						message.payload.data[0].measurement = String(node.Measurement);
-					}
 					if (node.Bucket) {
 						message.payload.bucket = String(node.Bucket);
 					}
@@ -176,6 +173,9 @@ module.exports = function(RED) {
 						message.payload.org = String(node.Organization);
 					}
 					message.payload.data = [{},];
+					if (node.Measurement) {
+						message.payload.data[0].measurement = String(node.Measurement);
+					}
 					message.payload.data[0].tags = {...tags};
 					message.payload.data[0].fields = {...data};
 					message.payload.data[0].timestamp = timestamp;
